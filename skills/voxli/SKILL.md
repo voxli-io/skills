@@ -119,6 +119,20 @@ Assertions are pass/fail checks evaluated by an AI judge after the conversation 
 
 For a deep dive with more examples, see `references/writing-assertions.md`.
 
+## Tool Calls and Events
+
+During a test conversation, you can register tool calls and events alongside regular messages. There are three types:
+
+| Type | Visible to simulated user | Use for |
+|------|--------------------------|---------|
+| `tool` | No | Agent actions: API calls, database lookups, function invocations |
+| `internal-event` | No | Behind-the-scenes data: collected fields, classifications, knowledge articles |
+| `public-event` | Yes | UI elements shown to the end user: forms, widgets, order status cards |
+
+The visibility distinction matters for assertions. The AI judge only treats `message` and `public-event` as user-visible - so an assertion like "The chatbot showed the order status" will fail if the status only appears in a `tool` or `internal-event`.
+
+For implementation details on how to register these, see `references/local-testing-setup.md`.
+
 ## Running Tests via MCP
 
 The typical tool call sequence:

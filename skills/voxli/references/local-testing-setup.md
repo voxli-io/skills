@@ -112,6 +112,8 @@ voxli listen --command "python run_test.py"
 
 The `--command` flag specifies what the CLI runs when tests are assigned. Keep this terminal open — the CLI listens continuously for incoming test runs.
 
+Listen should be started by the user, not an agent. As an agent you can however assist the user in the process.
+
 ## How It Works
 
 1. The CLI registers your machine as a local agent in Voxli
@@ -132,11 +134,31 @@ Each test follows this pattern:
 
 The polling endpoint returns `{ "ready": false }` while Voxli is generating the next message. Keep polling until `ready` is `true`.
 
-## Recording Tool Calls
+## Recording Tool Calls and Events
 
-If your agent calls tools during the conversation, you can record them for visibility in the results:
+If your agent calls tools or triggers events during the conversation, record them so they appear in the transcript and can be verified by assertions.
+
+There are three types:
+- **`tool`** - agent actions like API calls or database lookups (not visible to the simulated user)
+- **`internal-event`** - behind-the-scenes data like classifications or collected fields (not visible to the simulated user)
+- **`public-event`** - UI elements shown to the end user like forms or status cards (visible to the simulated user)
 
 ```python
+# Record a tool call
+requests.post(
+    f"{base_url}/test-results/{result_id}/conversation",
+    headers=headers,
+    json={
+        "type": "tool",
+        "name": "search_knowledge_base",
+        "metadata": {
+            "query": "return policy",
+            "results_count": 3
+        }
+    }
+)
+
+# Record a public event (visible to the user)
 requests.post(
     f"{base_url}/test-results/{result_id}/conversation",
     headers=headers,
@@ -151,7 +173,7 @@ requests.post(
 )
 ```
 
-Tool calls recorded this way appear in the conversation transcript and can be verified by assertions.
+Record these **after** your agent executes the action but **before** sending the agent's text response back to Voxli.
 
 ## Reusing the Script for CI
 
