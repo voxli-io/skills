@@ -33,10 +33,10 @@ Use numbered steps to describe the conversation flow. Each step should be a spec
 **Good:**
 ```
 Follow these steps:
-1. Greet the agent and ask about the status of your order.
+1. Say "Can you help me with my order?"
 2. When asked for your order number, provide NS-28479.
 3. When asked for verification, give your email sarah@example.com.
-4. Once you receive the order status, ask when it will be delivered.
+4. Once you receive the order status, ask "when it will be delivered".
 ```
 
 **Bad:**
@@ -65,26 +65,6 @@ End: Say "Thanks, goodbye" after getting your answer.
 Ask about your order status.
 ```
 This could result in an endless back-and-forth where the tester keeps asking follow-up questions.
-
-## Using Variables
-
-Use `{{variable_name}}` syntax to reference reusable test data. Variables are defined at the tenant level in Voxli and substituted when the test runs.
-
-**With variables:**
-```
-You're Sarah. Your order number is {{orderNumber}} and your email is {{customerEmail}}.
-
-Follow these steps:
-1. Ask about the status of your order.
-2. Provide your order number and email when asked.
-
-End: End the conversation after receiving the order status.
-```
-
-**Benefits:**
-- Change test data in one place instead of editing every test
-- Multiple tests can share the same data
-- Variable names like `{{orderNumber}}` are more readable than raw values
 
 ## Example Instructions
 

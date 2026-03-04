@@ -79,9 +79,9 @@ Test instructions tell the AI tester what to do. They should follow this pattern
 You're Sarah. Your order number is NS-28479, and your email is sarah@example.com.
 
 Follow these steps:
-1. Ask about the status of your order.
+1. Say "What is the status or my order?"
 2. When asked, provide your order number and email.
-3. Once you receive the order status, ask about the estimated delivery date.
+3. Once you receive the order status, say "When is the delivery date?"
 
 End: End the conversation after you receive the delivery date or after step 3.
 ```
@@ -91,8 +91,6 @@ End: End the conversation after you receive the delivery date or after step 3.
 Ask the chatbot about an order.
 ```
 This is too vague — the tester doesn't know what order, what to ask, or when to stop.
-
-Use `{{variable_name}}` syntax to reference reusable test data (e.g., `{{orderNumber}}`). Variables are defined at the tenant level and substituted at runtime.
 
 For a deep dive with more examples, see `references/writing-tests.md`.
 
@@ -136,7 +134,6 @@ If the run is still in progress, `get_test_results` shows `status: "running"`. W
 
 For selective runs, pass `test_ids` to `start_run`. For repetition testing, pass `repetitions` (up to 10).
 
-For the full tool reference, see `references/mcp-tools-reference.md`.
 
 ## Interpreting Results
 
@@ -162,7 +159,7 @@ For testing agents running on the user's local machine:
 
 1. Install: `npm install -g @voxli/cli`
 2. Authenticate: `voxli auth`
-3. Start listening: `voxli listen --command "python run_test.py"`
+3. Start listening: `voxli listen --command "python run_my_agent.py"`
 
 The CLI registers the local machine as an agent in Voxli. When a test run targets this agent, the CLI picks up the work and runs the specified command.
 
