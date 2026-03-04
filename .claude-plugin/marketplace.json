@@ -1,0 +1,22 @@
+{
+  "name": "voxli",
+  "owner": {
+    "name": "Voxli",
+    "email": "support@voxli.io"
+  },
+  "metadata": {
+    "description": "Voxli testing skill for conversational AI agents",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "voxli",
+      "description": "Guides you through creating and running automated tests for conversational AI agents using Voxli",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/voxli"
+      ]
+    }
+  ]
+}
