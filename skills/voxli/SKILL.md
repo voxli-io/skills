@@ -8,7 +8,7 @@ description: >
   Requires the Voxli MCP server to be connected.
 metadata:
   author: Voxli
-  version: 0.3.0
+  version: 0.4.0
   mcp-server: voxli
 ---
 
@@ -122,6 +122,20 @@ Assertions are pass/fail checks evaluated by an AI judge after the conversation 
 **Always include at least one blocker** for the test's core requirement. Use medium/low for supplementary checks.
 
 For a deep dive with more examples, see `references/writing-assertions.md`.
+
+## Choosing What to Test
+
+Knowing *how* to write tests is half the picture — knowing *what types* of scenarios to cover is just as important. Consider these categories when building test coverage:
+
+- **Happy path** — Standard flows where the user follows the expected path
+- **Boundary enforcement / Refusal** — Requests the agent should decline or redirect
+- **Context switching** — User changes topic mid-conversation
+- **Guardrails** — Agent stays within its role, doesn't hallucinate or fabricate data
+- **Abuse resistance** — Prompt injection, manipulation, offensive language
+- **Edge cases** — Empty inputs, unexpected formats, ambiguous requests
+- **Escalation** — When the agent should hand off to a human
+
+Start with happy path tests for your core flows, then add boundary and guardrail tests for your highest-risk areas. For detailed descriptions, example instructions, and suggested assertions for each category, see `references/scenario-types.md`.
 
 ## Tool Calls and Events
 
