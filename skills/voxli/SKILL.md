@@ -44,9 +44,13 @@ When helping users test their chatbot, follow this sequence:
 
 Call `list_scenarios` and `list_agents` to see what the user already has. If they have existing scenarios, call `get_scenario_tests` to see the tests inside.
 
+If a scenario has a linked configuration, `list_scenarios` returns a `configuration` object with `scenario_fields` and `test_fields`. Check `configuration.test_fields` to see what fields are available for tests in that scenario.
+
 ### Step 2: Create or update tests
 
 If starting fresh, help the user create tests with `create_test`. If improving existing tests, use `get_test` to read the current state, then `update_test`.
+
+If the scenario has configured test fields (visible from `list_scenarios`), pass a `fields` JSON string to `create_test` or `update_test` with key-value pairs matching the field definitions. Field types: `single_line_text` and `long_text` expect strings, `checkbox` expects booleans.
 
 Key principle: **tests are created without assertions**. Always use `add_test_assertion` after creating a test.
 
@@ -139,6 +143,7 @@ The typical tool call sequence:
 
 ```
 1. list_scenarios()          → find the scenario ID
+                                → check configuration.test_fields for available fields
 2. list_agents()             → find the agent ID
 3. start_run(scenario_id, agent_id)  → starts the run, returns run_id
 4. get_test_results(run_id)  → check status and results
