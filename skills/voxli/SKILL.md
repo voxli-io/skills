@@ -8,7 +8,7 @@ description: >
   Requires the Voxli MCP server to be connected.
 metadata:
   author: Voxli
-  version: 0.2.0
+  version: 0.3.0
   mcp-server: voxli
 ---
 
