@@ -125,7 +125,7 @@ For a deep dive with more examples, see `references/writing-assertions.md`.
 
 ## Choosing What to Test
 
-Knowing *how* to write tests is half the picture — knowing *what types* of scenarios to cover is just as important. Consider these categories when building test coverage:
+Knowing *how* to write tests is half the picture - knowing *what types* of scenarios to cover is just as important. Consider these categories when building test coverage:
 
 - **Happy path** — Standard flows where the user follows the expected path
 - **Boundary enforcement / Refusal** — Requests the agent should decline or redirect

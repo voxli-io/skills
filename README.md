@@ -19,6 +19,14 @@ You need the Voxli MCP server connected. See the [MCP setup guide](https://app.v
 
 ## Install
 
+### Skills CLI (works with 40+ agents)
+
+```bash
+npx skills add voxli-io/skills
+```
+
+This installs the skill for all supported agents (Claude Code, Cursor, Codex, GitHub Copilot, and more).
+
 ### Claude Code (plugin marketplace)
 
 ```
