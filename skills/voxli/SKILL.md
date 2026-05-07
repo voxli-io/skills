@@ -227,3 +227,7 @@ For setup details and code examples, see `references/local-testing-setup.md`.
 ### Not adding assertions
 - **Problem**: A test without assertions always "passes" but validates nothing.
 - **Fix**: Every test needs at least one assertion. Start with a blocker for the core requirement.
+
+### Em dashes in test text
+- **Problem**: Em dashes (—) in test instructions or assertions are not allowed.
+- **Fix**: Use commas, periods, or regular hyphens (-) instead. This applies to all test instructions, assertions, and any free-text fields passed to `create_test`, `update_test`, or `add_test_assertion`.
