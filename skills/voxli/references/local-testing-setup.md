@@ -1,186 +1,49 @@
 # Local Testing Setup
 
-Run Voxli tests against an agent running on your local machine, without CI round-trips. The Voxli CLI handles agent registration and polling automatically — you just provide a test command.
+Run Voxli tests against an agent on the user's own machine using the Voxli CLI. The CLI registers the machine as a local agent, listens for assigned test runs, and invokes a user-provided command.
 
-## What the CLI Does
+For exact API payloads, endpoints, and a working code sample, point the user to the official Voxli documentation and the `@voxli/cli` README. This file only explains the concepts the skill needs to know.
 
-- Registers your machine as a **local agent** in Voxli (visible only to you)
-- Listens for test runs targeting your local agent
-- Runs your command with the right environment variables when tests are assigned
-- Works with both the Voxli web UI and MCP for triggering runs
+## Core concepts
 
-## Setup
+### Local agent
+The CLI registers the user's machine as an "agent" inside Voxli, visible only to that user. Tests can target it the same way they target any other agent.
 
-### 1. Install the CLI
+### Listener command
+`voxli listen --command "<your command>"` keeps the CLI running. When Voxli assigns tests to this machine, the CLI executes the command, passing test IDs in via environment variables.
 
-```bash
-npm install -g @voxli/cli
-```
+### Environment contract
+The user's command receives:
 
-### 2. Authenticate
+| Variable | Purpose |
+|----------|---------|
+| `VOXLI_API_TOKEN` | Auth token, injected by the CLI from `voxli auth` |
+| `VOXLI_TEST_RESULT_IDS` | JSON array of test result IDs the command should run |
 
-```bash
-voxli auth
-```
+The same contract is used by the GitHub integration, so a script written for local development works in CI without changes.
 
-This opens a browser window to link your machine to your Voxli account. The CLI stores your credentials locally and automatically injects them when running your test command.
+### Conversation loop
+For each test result ID, the user's command runs a loop:
 
-### 3. Write Your Test Command
+1. Poll Voxli for the next message from the simulated user.
+2. Pass the message to the agent under test, capture the response.
+3. Send the agent's response back to Voxli.
+4. Optionally record `tool`, `internal-event`, or `public-event` entries (see the visibility table in `SKILL.md`) before sending the response.
+5. Stop when Voxli signals end-of-chat.
 
-Create a script that runs test conversations. The CLI passes these environment variables to your command:
+Voxli evaluates assertions and computes the score after the conversation ends.
 
-| Variable | Description |
-|----------|-------------|
-| `VOXLI_API_TOKEN` | Your API token (injected automatically from `voxli auth`) |
-| `VOXLI_TEST_RESULT_IDS` | JSON array of test result IDs to run |
+## Setup steps (high level)
 
-Here's a minimal Python example:
+1. `npm install -g @voxli/cli`
+2. `voxli auth` (browser-based login).
+3. Write a test command that implements the conversation loop above.
+4. `voxli listen --command "<command>"` — keep this terminal open. The user starts this themselves; an assistant should not.
 
-```python
-"""Run Voxli test conversations."""
-import json
-import os
-import sys
-import time
-import requests
+For working code, exact endpoints, and request/response shapes, refer to the Voxli documentation.
 
+## Troubleshooting (quick)
 
-def get_agent_response(message: str) -> str:
-    """Replace this with your actual agent integration."""
-    # Call your chatbot/agent here and return its response
-    return my_agent.chat(message)
-
-
-def poll_next_message(endpoint, headers, timeout=30):
-    start_time = time.time()
-    while True:
-        response = requests.post(endpoint, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-        if data["ready"]:
-            return None if data.get("end_chat") else data["message"]
-        if time.time() - start_time > timeout:
-            raise TimeoutError("Timed out waiting for message")
-        time.sleep(1)
-
-
-def run_test(test_result_id, api_key, base_url):
-    headers = {"Authorization": f"Bearer {api_key}"}
-    conversation_url = f"{base_url}/test-results/{test_result_id}/conversation"
-    next_message_url = f"{base_url}/test-results/{test_result_id}/next-message"
-
-    # Get first message from Voxli
-    tester_message = poll_next_message(next_message_url, headers)
-
-    # Conversation loop
-    while tester_message is not None:
-        agent_response = get_agent_response(tester_message)
-
-        # Record agent response
-        requests.post(
-            conversation_url,
-            headers=headers,
-            json={"type": "message", "content": agent_response}
-        ).raise_for_status()
-
-        # Get next message from Voxli
-        tester_message = poll_next_message(next_message_url, headers)
-
-
-def main():
-    api_key = os.getenv("VOXLI_API_TOKEN")
-    result_ids_raw = os.getenv("VOXLI_TEST_RESULT_IDS")
-    base_url = os.getenv("VOXLI_API_URL", "https://api.voxli.io")
-
-    if not api_key or not result_ids_raw:
-        print("VOXLI_API_TOKEN and VOXLI_TEST_RESULT_IDS are required")
-        sys.exit(1)
-
-    for result_id in json.loads(result_ids_raw):
-        run_test(result_id, api_key, base_url)
-
-
-if __name__ == "__main__":
-    main()
-```
-
-### 4. Start Listening
-
-```bash
-voxli listen --command "python run_test.py"
-```
-
-The `--command` flag specifies what the CLI runs when tests are assigned. Keep this terminal open — the CLI listens continuously for incoming test runs.
-
-Listen should be started by the user, not an agent. As an agent you can however assist the user in the process.
-
-## How It Works
-
-1. The CLI registers your machine as a local agent in Voxli
-2. You trigger a test run from the Voxli UI or via MCP (`start_run` with your local agent's ID)
-3. The CLI picks up the assigned tests and runs your `--command` with `VOXLI_TEST_RESULT_IDS` and `VOXLI_API_TOKEN`
-4. Your script runs the conversation loop for each test
-5. Voxli evaluates assertions and calculates scores once each conversation ends
-
-## The Conversation Loop
-
-Each test follows this pattern:
-
-1. **Poll** `POST /test-results/{id}/next-message` — get the next message from the AI tester
-2. **Respond** — pass the message to your agent and get a response
-3. **Record** `POST /test-results/{id}/conversation` — send the agent's response back to Voxli
-4. **Repeat** — poll again for the next message
-5. **Stop** — when `end_chat: true` is returned, the conversation is over
-
-The polling endpoint returns `{ "ready": false }` while Voxli is generating the next message. Keep polling until `ready` is `true`.
-
-## Recording Tool Calls and Events
-
-If your agent calls tools or triggers events during the conversation, record them so they appear in the transcript and can be verified by assertions.
-
-There are three types:
-- **`tool`** - agent actions like API calls or database lookups (not visible to the simulated user)
-- **`internal-event`** - behind-the-scenes data like classifications or collected fields (not visible to the simulated user)
-- **`public-event`** - UI elements shown to the end user like forms or status cards (visible to the simulated user)
-
-```python
-# Record a tool call
-requests.post(
-    f"{base_url}/test-results/{result_id}/conversation",
-    headers=headers,
-    json={
-        "type": "tool",
-        "name": "search_knowledge_base",
-        "metadata": {
-            "query": "return policy",
-            "results_count": 3
-        }
-    }
-)
-
-# Record a public event (visible to the user)
-requests.post(
-    f"{base_url}/test-results/{result_id}/conversation",
-    headers=headers,
-    json={
-        "type": "public-event",
-        "name": "check_order",
-        "metadata": {
-            "order_id": "NS-28479",
-            "result": {"status": "shipped"}
-        }
-    }
-)
-```
-
-Record these **after** your agent executes the action but **before** sending the agent's text response back to Voxli.
-
-## Reusing the Script for CI
-
-The CLI test command uses the same contract as the GitHub integration — `VOXLI_API_TOKEN` and `VOXLI_TEST_RESULT_IDS`. If you write your test script for local development, you can reuse it in a GitHub Actions workflow with no changes.
-
-## Troubleshooting
-
-- **Agent not showing up in Voxli**: Make sure `voxli listen` is running. The agent appears as online only while the CLI is actively listening.
-- **Tests not picked up**: Verify you selected your local agent when starting the run. Local agents are specific to your machine.
-- **Authentication errors**: Run `voxli auth` again to refresh your credentials.
+- **Local agent missing in Voxli** → `voxli listen` isn't running.
+- **Tests not picked up** → wrong agent selected when starting the run.
+- **Auth errors** → re-run `voxli auth`.

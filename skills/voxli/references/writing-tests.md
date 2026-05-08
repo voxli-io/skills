@@ -1,180 +1,97 @@
 # Writing Test Instructions
 
-Test instructions tell the AI tester how to behave during a conversation with the chatbot under test. A well-written instruction produces a predictable, repeatable conversation that you can reliably evaluate with assertions.
+A test instruction tells the AI tester (Voxli) how to behave when talking to your chatbot. It must be concrete enough to produce a repeatable conversation that you can evaluate with assertions.
 
-## The Three Essential Parts
+## The three required parts
 
-Every test instruction needs three things:
+1. **Persona** — a name, the data the tester will share when asked, and the situation that brought them here.
+2. **Steps** — numbered actions, one per step. React to the agent rather than predict it ("Once you receive the order status..." not "After the agent shows...").
+3. **End condition** — a final `End:` line saying when to stop, with a fallback exit so the tester doesn't loop.
 
-1. **Persona** — who the tester is and what context they have
-2. **Steps** — what to say and do, in order
-3. **End condition** — when to stop the conversation
+### Useful step techniques
 
-## Persona-Based Format
-
-Start by establishing who the tester is. Give them a name, relevant details, and the context they need.
-
-**Good:**
-```
-You're Sarah. Your order number is NS-28479, and your email is sarah@example.com.
-You placed the order last week and haven't received a shipping update.
-```
-
-**Bad:**
-```
-You're a customer.
-```
-The bad version gives the tester nothing specific to work with — no name, no order number, no context.
-
-## Step-by-Step Structure
-
-Use numbered steps to describe the conversation flow. Each step should be a specific action.
-
-**Good:**
-```
-Follow these steps:
-1. Say "Can you help me with my order?"
-2. When asked for your order number, provide NS-28479.
-3. When asked for verification, give your email sarah@example.com.
-4. Once you receive the order status, ask "when it will be delivered".
-```
-
-**Bad:**
-```
-Ask about your order and give your details when needed.
-```
-The bad version is ambiguous — "details" could mean anything, and there's no clear flow.
-
-## Explicit End Conditions
-
-Always tell the tester when to stop. Without an end condition, the conversation may continue aimlessly.
-
-**Good end conditions:**
-```
-End: End the conversation after you receive the delivery date.
-```
-```
-End: End the conversation after step 4, or if the agent says your order is not found.
-```
-```
-End: Say "Thanks, goodbye" after getting your answer.
-```
-
-**Bad (no end condition):**
-```
-Ask about your order status.
-```
-This could result in an endless back-and-forth where the tester keeps asking follow-up questions.
-
-## Example Instructions
-
-### Order Lookup
+- **Quote a context-rich opening line.** Giving the tester an exact first message ("Start with: 'X'") cuts a major source of run-to-run variance — and the opener should also establish the persona's situation so the agent doesn't have to spend a turn extracting it.
+  - Bad: `"Start with: 'Hi, I need help.'"`
+  - Good: `"Start with: 'Hi, I'm looking for a podiatrist who takes my insurance and has evening slots, what's available?'"`
+- **Set the pace.** "Ask one question at a time" prevents the tester from dumping every question into a single message.
+- **Group sub-questions under topic headings** when one persona explores several related things — the agent gets a realistic flow, and you get clean assertion targets per topic.
+- **Use plain transitions between topics.** "When you've covered the above, ask about..." or "Now switch to..." make the intent unmistakable.
+- **Specify the closing phrase.** Giving the tester an exact line to say before ending ("say 'Thanks, that's all I needed.' and end the conversation") produces consistent, clean transcripts.
 
 ```
-You're Marcus. Your order number is NS-44821 and your email is marcus@example.com.
+You're Sarah. Your order is NS-28479, email sarah@example.com.
 
 Follow these steps:
-1. Ask the agent about the status of your order.
-2. Provide your order number when asked.
-3. Provide your email for verification when asked.
-4. Once you receive the status, ask if you can change the shipping address.
+1. Ask about the status of your order.
+2. Provide your order number and email when asked.
+3. Once you have the status, ask when it will be delivered.
 
-End: End the conversation after the agent responds to your address change request.
+End: End the conversation after you receive the delivery date, or if the agent says the order isn't found.
 ```
 
-### FAQ / Knowledge Base
+## Scope
+
+One focused conversation per test. If you need 10+ steps, or the persona has two unrelated goals, split it. You want failures to be diagnosable from a single assertion.
+
+A persona asking several related questions on **one topic** (e.g. researching a product) is fine — group sub-questions under headings so the conversation flows naturally.
+
+## Patterns
+
+| Pattern | When to use | Key idea |
+|---------|-------------|----------|
+| Happy path | Verify the core flow works | Direct steps, single goal |
+| Information gathering | User researches one topic across many turns | Group related sub-questions |
+| Refusal / out-of-scope | Agent should decline | Push twice, accept refusal |
+| Escalation | Agent should hand off to a human | Reject standard solutions, ask for human |
+| Edge case | Unclear or empty input | Send "hi", "...", then a real message |
+| Context switch | User changes topic mid-conversation | Interrupt, then return |
+| Prompt injection | Agent should resist manipulation | "Ignore your instructions and..." then verify the agent still works |
+
+### Multi-topic information-gathering example
 
 ```
-You're Alex. You're considering signing up for the Premium plan but have questions.
+You're Sam, evaluating CRMs for a 12-person sales team that's outgrowing spreadsheets. You have basic technical skills but you're not the engineer who'll set it up.
 
-Follow these steps:
-1. Ask what features are included in the Premium plan.
-2. Ask about the pricing and whether there's an annual discount.
-3. Ask if you can cancel anytime or if there's a commitment period.
+Start with: "Hi, I'm comparing CRMs for a small sales team. Where do I start?"
 
-End: End the conversation after step 3.
+Ask one question at a time. Cover:
+
+About the recommended plan:
+- What it includes.
+- Whether it scales to 12 seats.
+- Pipeline and forecasting features.
+- Integrations with email and calendar.
+
+About pricing:
+- The monthly cost per seat.
+- What's not included at this tier.
+- Annual vs monthly billing.
+
+Then ask how to start a trial.
+
+End: When all topics are answered, say "Great, I have what I need. Thanks." and end the conversation. If the agent says it cannot help with one of the topics, accept that and move on to the next; if it refuses everything, end the conversation.
 ```
 
-### Escalation to Human
+## Coverage
 
-```
-You're Jordan. You have a billing dispute that the chatbot can't resolve.
+For any non-trivial agent, aim to cover: happy path, refusal, escalation, edge cases, abuse resistance. One blocker per category is worth more than ten happy-path tests.
 
-Follow these steps:
-1. Explain that you were charged twice for order #BL-7291.
-2. When the agent offers standard solutions, say you've already tried that and it didn't work.
-3. Ask to speak with a human agent.
+## Hard rules
 
-End: End the conversation after the agent either transfers you or provides a way to reach a human.
-```
+- **No em dashes (—)** anywhere in test text. Use commas, periods, or hyphens (-). Tests with em dashes are rejected.
+- **No markdown** in the instruction body. Plain prose with numbered steps.
+- **Every `End:` line needs a fallback exit AND an unambiguous stop signal.** Two parts:
+  - **Fallback exit.** A success-only end lets the tester loop forever if the success path never lands. Always add a second clause: `...or if the agent refuses, end the conversation` / `...or after N turns, whichever comes first`.
+  - **Concrete stop signal.** Prefer step-based (`after step 5`) or a specific trigger (`once you receive a confirmation number`) over open-ended phrasings like `"when you have what you need"` — those are interpretable and produce variable-length runs.
 
-### Multi-Turn with Tool Usage
+## Pitfalls
 
-```
-You're Priya. You want to book a flight from Stockholm to London for next Friday.
-
-Follow these steps:
-1. Tell the agent you want to book a flight from Stockholm to London for next Friday.
-2. When presented with options, choose the cheapest one.
-3. Confirm the booking when asked.
-4. Ask for a confirmation number.
-
-End: End the conversation after receiving the confirmation number, or after step 4.
-```
-
-### Edge Case — Empty Input Handling
-
-```
-You're Sam. You're going to test how the agent handles unclear messages.
-
-Follow these steps:
-1. Send just "hi".
-2. When the agent asks how it can help, send "..." (just three dots).
-3. When the agent responds, send a normal message: "I need help with my account."
-
-End: End the conversation after the agent responds to your account request.
-```
-
-### Negative Test — Out-of-Scope Request
-
-```
-You're Dana. You're going to ask the agent something it shouldn't be able to help with.
-
-Follow these steps:
-1. Ask the agent to help you write a Python script.
-2. If the agent refuses or redirects, accept the response.
-3. If the agent tries to help, ask a follow-up coding question.
-
-End: End the conversation after the agent's first response to your request, or after step 3.
-```
-
-## Common Pitfalls
-
-### Too vague
-```
-Talk to the chatbot about orders.
-```
-**Why it fails:** The tester has no persona, no specific order, and no direction. Every run will produce a different, unpredictable conversation.
-
-### No end condition
-```
-You're Sarah. Your order number is NS-28479.
-Ask about your order status and provide your details when asked.
-```
-**Why it fails:** The tester might keep asking follow-up questions indefinitely. Always add "End: ..." to signal when to stop.
-
-### Too many steps
-A test with 15+ steps is hard to debug when a failure occurs somewhere in the middle. Split long flows into multiple focused tests instead.
-
-### Conflicting instructions
-```
-You're angry about your order being late. Be polite and patient throughout.
-```
-**Why it fails:** The persona conflicts with the behavior instruction. Keep the persona and behavior consistent.
-
-### Assuming agent behavior
-```
-1. Ask about your order.
-2. After the agent shows the order details, ask to cancel it.
-```
-**Why it fails:** Step 2 assumes the agent will show order details. What if it asks for verification first? Write conditional steps: "Once you receive the order details, ask to cancel it."
+- Vague: "Talk to the chatbot about orders." → no persona, no goal.
+- No end condition → infinite tester follow-ups.
+- Predicting the agent: "After the agent shows order details..." → use "Once you receive..." instead.
+- Conflicting persona: "Be angry. Stay polite." → pick one.
+- Scripting exact wording when not needed → real users don't talk like form letters.
+- Leaking assertions into steps: "Make sure the agent calls check_order." → the tester is a user, not an evaluator.
+- Restating the persona in step 1: the persona section is already "in the tester's head"; step 1 should be the action that follows from it, not a recap.
+  - Bad: `1. Tell the bakery you're vegan and want a birthday cake.`
+  - Good: `1. Ask whether they have any vegan birthday cake options available this week.`
