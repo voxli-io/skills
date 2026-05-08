@@ -52,6 +52,9 @@ Reasons to defer to the user:
 - The agent might not be ready for testing yet.
 
 If they ask you to run it, use the standard MCP flow: `start_run`, then poll `get_test_results`.
+Don't guess what agent to use, make sure you ask if unclear.
+Users with local agents that are online usually want to use those.
+Also consider running it with multiple iterations to detect flakyness.
 
 ## 4. Read
 
