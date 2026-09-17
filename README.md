@@ -47,10 +47,10 @@ cp -r skills/skills/voxli ~/.claude/skills/voxli
 
 | File | Purpose |
 |------|---------|
-| `skills/voxli/SKILL.md` | Core skill — workflow, key rules, common mistakes |
+| `skills/voxli/SKILL.md` | Core skill: workflow, key rules, common mistakes |
 | `skills/voxli/references/writing-tests.md` | Deep guide on writing test instructions with examples |
 | `skills/voxli/references/writing-assertions.md` | Assertion criteria, severity framework, scoring |
-| `skills/voxli/references/mcp-tools-reference.md` | Quick reference for all MCP tools |
+| `skills/voxli/references/iterating-on-tests.md` | The collaborative loop for building a suite with the user |
 | `skills/voxli/references/local-testing-setup.md` | CLI setup for local agent testing |
 | `skills/voxli/references/interpreting-results.md` | How to read results and diagnose failures |
 
@@ -59,3 +59,11 @@ cp -r skills/skills/voxli ~/.claude/skills/voxli
 - [Voxli](https://voxli.io) — the testing platform
 - [MCP setup guide](https://voxli.io/docs/developers/mcp) — connect the MCP server
 - [Claude Code skills docs](https://code.claude.com/docs/en/skills) — how skills work in Claude Code
+
+## Maintenance
+
+This repository is generated. The skill is maintained in the Voxli monorepo
+alongside the MCP server it describes, and published here automatically when a
+version deploys to production, so the guidance always matches the live tools.
+
+Pull requests opened here will be overwritten. Please open an issue instead.

@@ -168,6 +168,45 @@ blocker: behavior did not change after the injection attempt
 medium:  continued to function normally afterwards
 ```
 
+## Verifying assertions with try_test_assertions
+
+**Trying an assertion is cheap, so try before you commit.** `try_test_assertions` grades candidate assertion texts against the stored conversation of a completed test result. No conversation with the agent happens: the judge re-reads a transcript you already have, so a verdict comes back in seconds for a fraction of the cost of a run. Nothing is written either. The test keeps its assertions, and the result keeps its own verdicts, score, and pass/fail.
+
+That makes it the default way to check a wording. Re-running the test to see how a sentence scores is slow, spends a real conversation, and changes the transcript underneath you, so you learn little about the sentence itself.
+
+```
+try_test_assertions(result_id, assertions)
+```
+
+| Argument | What it takes |
+|----------|---------------|
+| `result_id` | One completed test result whose conversation to judge against. Ids come from `get_run` and `get_compare`. |
+| `assertions` | The texts to try, as plain strings, at most 10. No severity: the judge never sees severity, it is only a weight in the score. |
+
+You get back one verdict per assertion in the order you passed them, each with `criteria`, `passed`, `explanation`, and `related_message_indices` (the conversation entries the judge read).
+
+### Try it more than once
+
+One verdict on one transcript proves very little. The judge is an LLM, and a borderline assertion flips from call to call. Because trying is cheap, spend the calls:
+
+- **Same assertion, same result, a few times.** If the verdict is not identical every time, the wording is ambiguous. Fix it now, or it produces flaky results forever.
+- **Same assertion, several results of the same test.** Different repetitions of a run, or the same test across agents in a compare. A criterion that passes on one transcript and fails on another is reading something incidental rather than the behavior you meant.
+
+This is the verifiability test from above, run for real instead of imagined.
+
+### Check both directions
+
+An assertion has to catch what you want caught **and stay quiet otherwise**. Verify both:
+
+- **Against a transcript where the behavior went wrong, it should fail.** If it passes there, it is not catching the thing you wrote it for. That is a vacuous assertion: green forever, worth nothing.
+- **Against a transcript where the agent did fine, it should pass.** This is the direction people skip. When you add assertions to a test that already produced a good result, try them against that result first. A failure there means the wording is wrong, not the agent.
+
+A wording that passes the good transcript and fails the bad one is doing its job. A wording that comes back the same on both is not an assertion, it is a constant.
+
+Once it holds up, persist it with `add_test_assertion` or `update_test_assertion`. Those are the tools that write.
+
+A result that is not `completed` is rejected, since a partial transcript would grade against half a conversation.
+
 ## Scoring
 
 ```
@@ -179,6 +218,7 @@ Weights: blocker=4, medium=2, low=1. The numeric score does **not** determine pa
 ## Hard rules
 
 - **3 assertions for a short test, 5 for a longer one.** 10 is the absolute cap, not the goal.
+- **Try before you commit.** When a completed result exists, put a new or rewritten assertion through `try_test_assertions` before `add_test_assertion` or `update_test_assertion`: more than once, and against more than one transcript. Trying is cheap, a flaky assertion is expensive.
 - **No em dashes (—)** anywhere in assertion text. Use commas, periods, or hyphens (-).
 - **Banned vague words.** Never write an assertion whose verdict depends on judging one of these adjectives without a concrete anchor: `helpful`, `good`, `nice`, `well`, `properly`, `correctly` (without a value), `friendly`, `polite`, `appropriate`, `reasonable`. Either rewrite around an observable fact, or drop the assertion.
 - **No compound criteria.** One assertion = one concept. Any `X and Y` pattern is two assertions, not one. Compound examples that look natural but aren't atomic: `"declined the request and explained why"`, `"acknowledged frustration and restated the policy"`, `"called check_order and provided the status"`. Split each into two.
@@ -189,6 +229,7 @@ Weights: blocker=4, medium=2, low=1. The numeric score does **not** determine pa
 
 - **Vague**: "handled the request properly" → use observable criteria.
 - **Testing the tester**: "The user asked about their order" → assert the agent's behavior, not the simulated user's.
+- **Vacuous**: an assertion that passes on a transcript where the behavior went wrong → it is not checking what you think; verify it fails where it should.
 - **Redundant**: same check in two assertions → wastes a slot, hides what's actually broken.
 - **Over-specified wording**: `said exactly "X"` → check meaning, not exact words.
 - **Verbose**: long assertions can hide the actual check. Watch for trailing "rather than X" clauses, editorial "showing that..." trailers, or comma-stuffed verb lists.
