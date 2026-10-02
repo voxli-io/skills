@@ -74,8 +74,8 @@ Skip these only when the case prompt establishes nothing about the agent's tooli
 
 | Severity | Weight | Meaning |
 |----------|--------|---------|
-| **blocker** | 4 | Must pass. Any blocker failure → `overallPassed: false`. |
-| **medium** | 2 | Expected. Reduces score; doesn't fail the test. |
+| **blocker** | 4 | Must pass. |
+| **medium** | 2 | Expected. A failure reduces the score and is a warning. |
 | **low** | 1 | Nice-to-have. |
 
 **Default severity is `medium`.** Most assertions describe expected behavior, not unconditional must-pass. Pick `blocker` only when a failure of this single check would make the entire test invalid — usually safety, correctness of the core fact, or a hard "must call X / must not call Y" requirement.
@@ -170,7 +170,7 @@ medium:  continued to function normally afterwards
 
 ## Verifying assertions with try_test_assertions
 
-**Trying an assertion is cheap, so try before you commit.** `try_test_assertions` grades candidate assertion texts against the stored conversation of a completed test result. No conversation with the agent happens: the judge re-reads a transcript you already have, so a verdict comes back in seconds for a fraction of the cost of a run. Nothing is written either. The test keeps its assertions, and the result keeps its own verdicts, score, and pass/fail.
+**Trying an assertion is cheap, so try before you commit.** `try_test_assertions` grades candidate assertion texts against the stored conversation of a completed test result. No conversation with the agent happens: the judge re-reads a transcript you already have, so a verdict comes back in seconds for a fraction of the cost of a run. Nothing is written either. The test keeps its assertions, and the result keeps its own verdicts and score.
 
 That makes it the default way to check a wording. Re-running the test to see how a sentence scores is slow, spends a real conversation, and changes the transcript underneath you, so you learn little about the sentence itself.
 
@@ -180,7 +180,7 @@ try_test_assertions(result_id, assertions)
 
 | Argument | What it takes |
 |----------|---------------|
-| `result_id` | One completed test result whose conversation to judge against. Ids come from `get_run` and `get_comparison`. |
+| `result_id` | One completed test result whose conversation to judge against. Ids come from `get_run`. |
 | `assertions` | The texts to try, as plain strings, at most 10. No severity: the judge never sees severity, it is only a weight in the score. |
 
 You get back one verdict per assertion in the order you passed them, each with `criteria`, `passed`, `explanation`, and `related_message_indices` (the conversation entries the judge read).
@@ -213,7 +213,7 @@ A result that is not `completed` is rejected, since a partial transcript would g
 score = (sum of passed assertion weights / sum of all weights) * 100
 ```
 
-Weights: blocker=4, medium=2, low=1. The numeric score does **not** determine pass/fail — only blockers do. A test can score 72% and pass (all blockers green), or 80% and fail (one blocker red).
+Weights: blocker=4, medium=2, low=1. Score and blockers are separate signals: a test can score 72% with no failed blocker, or 80% with one.
 
 ## Hard rules
 

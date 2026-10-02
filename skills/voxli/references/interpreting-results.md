@@ -2,29 +2,40 @@
 
 After running tests, use this guide to interpret the results.
 
-## Run Status
+## Reading Order
 
-The top-level `status` field tells you where the run is:
+Work from the overview down to the detail:
 
-| Status | Meaning |
-|--------|---------|
-| `running` | Tests are still executing. |
-| `completed` | All tests have finished. Results are ready to read. |
-| `error` | Something went wrong during execution. |
+1. **`get_run_group`**: the whole run. `metrics` folds every run in the group once (score, blockers, warnings, hallucinations, and the workspace's own metrics), and `runs` gives one line per scenario and personality with its `score`. Quote group numbers from here: a group value is not the average of its runs' values.
+2. **`get_run`**: one run's tests. Each test lists its repeats with `status`, `passed`, `score`, and each failed assertion with the judge's explanation.
+3. **`get_test_results`**: the detail behind specific `result_id`s from `get_run`: every assertion result, and the conversation when you ask for it.
+
+## Status
+
+`done` on `get_run_group` is `true` once every run has finished. Until then, metrics fold only the finished repeats and `pending_results` counts the rest, so wait for `done` before quoting numbers.
+
+| Run `status` | Meaning |
+|--------------|---------|
+| `new`, `pending`, `running` | Still going. |
+| `completed` | Every test finished. |
+| `failed` | The run stopped on an error. |
+| `canceled` | Stopped before it finished. |
+
+A repeat's `status` is `pending`, `running`, `completed`, `failed` (the conversation errored, and it scores 0) or `canceled`. There is no pass/fail verdict for a test or a run: read the score and the failed assertions.
 
 ## Test Result Fields
 
-Each entry in the `results` array represents one test execution:
+`get_test_results` returns one entry per result:
 
 | Field | Description |
 |-------|-------------|
-| `id` | Test result ID |
-| `status` | `"completed"` or `"error"` |
+| `result_id` | Test result ID |
+| `test_name`, `scenario_name`, `personality_name`, `agent_name` | What ran, as whom, on which agent |
+| `status` | See above |
 | `score` | Weighted percentage (0-100) of passed assertions |
-| `overallPassed` | `true` if all blocker assertions passed (or no blockers exist) |
-| `testInstruction` | The instruction that was used for this test |
-| `conversation` | Array of messages exchanged between tester and agent |
-| `assertionResults` | Array of assertion evaluations |
+| `test_instruction` | The instruction that was used for this test |
+| `assertion_results` | Array of assertion evaluations |
+| `conversation` | Only with `include_conversation` or `include_conversation_types` |
 
 ## Reading Assertion Results
 
@@ -39,18 +50,14 @@ Each assertion result contains:
 
 ### What to look for
 
-1. **Failed blockers** — these are the most critical. They mean the test failed overall and indicate a core requirement wasn't met.
-2. **Failed medium assertions** — these reduce the score and point to expected behaviors the agent missed.
-3. **Failed low assertions** — minor issues. Worth noting but not urgent.
-4. **Explanations** — the AI judge explains why each assertion passed or failed. Read these to understand the root cause.
+1. **Failed blockers**: these are the most critical. They mean a core requirement wasn't met.
+2. **Failed medium assertions**: these reduce the score and point to expected behaviors the agent missed.
+3. **Failed low assertions**: minor issues. Worth noting but not urgent.
+4. **Explanations**: the AI judge explains why each assertion passed or failed. Read these to understand the root cause.
 
-### overallPassed Logic
+### Score and Blockers
 
-- If the test has **any blocker assertions**, `overallPassed` is `true` only if **all blockers pass**.
-- If the test has **no blocker assertions**, `overallPassed` is `true` by default.
-- The numeric score does NOT determine `overallPassed` — only blocker assertions do.
-
-This means a test can have a score of 72% and still pass (all blockers passed, some medium/low failed), or have a score of 80% and fail (one blocker failed).
+The score and the failed blockers are separate signals. A test can score 72% with no failed blocker (some medium and low assertions failed), or 80% with one. Report both.
 
 ## Reading Conversations
 
@@ -96,11 +103,11 @@ Use `repetitions` (2-3) when re-running to check that the fix is stable and not 
 
 When presenting results, lead with the most important information:
 
-1. **Overall pass/fail count** — "3 of 5 tests passed"
-2. **Failed blocker assertions** — highlight these first
-3. **Score summary** — per-test scores
-4. **Specific failures** — what went wrong and where in the conversation
-5. **Recommendations** — what to fix (agent-side or test-side)
+1. **Score and blockers**: the run's score, blocker and warning counts from `get_run_group`
+2. **Failed blocker assertions**: highlight these first
+3. **Score summary**: per-run and per-test scores
+4. **Specific failures**: what went wrong and where in the conversation
+5. **Recommendations**: what to fix (agent-side or test-side)
 
 Try to keep this short and to the point, no unecessary fluff.
 Users want to know why something failed and what they can do about it.
