@@ -180,7 +180,7 @@ try_test_assertions(result_id, assertions)
 
 | Argument | What it takes |
 |----------|---------------|
-| `result_id` | One completed test result whose conversation to judge against. Ids come from `get_run` and `get_compare`. |
+| `result_id` | One completed test result whose conversation to judge against. Ids come from `get_run` and `get_comparison`. |
 | `assertions` | The texts to try, as plain strings, at most 10. No severity: the judge never sees severity, it is only a weight in the score. |
 
 You get back one verdict per assertion in the order you passed them, each with `criteria`, `passed`, `explanation`, and `related_message_indices` (the conversation entries the judge read).

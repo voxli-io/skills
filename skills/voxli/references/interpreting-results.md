@@ -87,8 +87,8 @@ After diagnosing failures:
 
 1. **Fix the agent** if the problem is in the agent's behavior, prompt, or tools
 2. **Fix the test** if the instruction was unclear or the assertion was wrong
-3. **Re-run** by calling `start_run` again with the same scenario and agent
-4. **Compare** new results against the previous run to verify improvements
+3. **Re-run** by calling `run_tests` on the same agent with the fields of the run group's `setup` (from `get_run_group`)
+4. **Compare** new results against the previous run to verify improvements: put both run groups in one comparison (`create_comparison`, or `add_to_comparison` for one that exists) and read it with `get_comparison`
 
 Use `repetitions` (2-3) when re-running to check that the fix is stable and not just a flaky pass.
 
