@@ -51,7 +51,7 @@ Reasons to defer to the user:
 - Running consumes credits or hits external systems.
 - The agent might not be ready for testing yet.
 
-If they ask you to run it, use the standard MCP flow: `run_tests`, then poll `get_run_group` until `done` for the overview, and read a run's tests with `get_run` and their detail with `get_test_results`.
+If they ask you to run it, use the standard MCP flow: `run_tests`, then check `get_run_group` with `status_only: true` until `done`, call it once without `status_only` for the overview, and read a run's tests with `get_run` and their detail with `get_test_results`.
 Don't guess what agent to use, make sure you ask if unclear.
 Users with local agents that are online usually want to use those.
 Also consider running it with multiple iterations to detect flakyness.

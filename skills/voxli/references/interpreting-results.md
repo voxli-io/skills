@@ -12,7 +12,7 @@ Work from the overview down to the detail:
 
 ## Status
 
-`done` on `get_run_group` is `true` once every run has finished. Until then, metrics fold only the finished repeats and `pending_results` counts the rest, so wait for `done` before quoting numbers.
+`done` on `get_run_group` is `true` once every run has finished. Until then, metrics fold only the finished repeats and `pending_results` counts the rest, so wait for `done` before quoting numbers. To wait, call `get_run_group` with `status_only: true`: it returns only `done` and `pending_results`, so checking every 15 to 30 seconds is cheap.
 
 | Run `status` | Meaning |
 |--------------|---------|
@@ -95,7 +95,7 @@ After diagnosing failures:
 1. **Fix the agent** if the problem is in the agent's behavior, prompt, or tools
 2. **Fix the test** if the instruction was unclear or the assertion was wrong
 3. **Re-run** by calling `run_tests` on the same agent with the fields of the run group's `setup` (from `get_run_group`)
-4. **Compare** new results against the previous run to verify improvements: put both run groups in one comparison (`create_comparison`, or `add_to_comparison` for one that exists) and read it with `get_comparison`
+4. **Compare** new results against the previous run to verify improvements: put both run groups in one comparison (`create_comparison`, or `update_comparison` with every column for one that exists) and read it with `get_comparison`
 
 Use `repetitions` (2-3) when re-running to check that the fix is stable and not just a flaky pass.
 

@@ -41,7 +41,7 @@ The user authenticates via browser on first use.
 2. **Create or update tests** — new tests are created without assertions; for existing ones, read current state before updating.
 3. **Add assertions** — every test needs at least one blocker covering the core requirement.
 4. **Run** — call `run_tests` with an agent and one or more scenarios. You can run a subset of tests, add personalities, or use repetitions (1-10) to detect flaky behavior. If using the Voxli CLI, target the LOCAL agent registered to the user's machine.
-5. **Check results** — fetch results by run ID. If the run is still in progress, wait and fetch again.
+5. **Check results** — while it runs, call `get_run_group` with `status_only: true` every 15 to 30 seconds until `done` is true (it returns only `done` and `pending_results`, so it is cheap). Then call `get_run_group` once for the overview.
 6. **Iterate** — fix the agent or the test based on failures.
 
 ## Hard rules
