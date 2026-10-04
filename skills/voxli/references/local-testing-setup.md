@@ -18,7 +18,8 @@ The user's command receives:
 | Variable | Purpose |
 |----------|---------|
 | `VOXLI_API_TOKEN` | Auth token, injected by the CLI from `voxli auth` |
-| `VOXLI_TEST_RESULT_IDS` | JSON array of test result IDs the command should run |
+| `TEST_RESULT_IDS` | JSON array of test result IDs the command should run |
+| `RUN_ID` | The run ID, set only when the batch belongs to a run |
 
 The same contract is used by the GitHub integration, so a script written for local development works in CI without changes.
 

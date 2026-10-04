@@ -7,12 +7,12 @@ After running tests, use this guide to interpret the results.
 Work from the overview down to the detail:
 
 1. **`get_run_group`**: the whole run. `metrics` folds every run in the group once (score, blockers, warnings, hallucinations, and the workspace's own metrics), and `runs` gives one line per scenario and personality with its `score`. Quote group numbers from here: a group value is not the average of its runs' values.
-2. **`get_run`**: one run's tests. Each test lists its repeats with `status`, `passed`, `score`, and each failed assertion with the judge's explanation.
+2. **`get_run`**: one run's tests. Each test lists its repeats with `status`, `score`, and each failed assertion with the judge's explanation.
 3. **`get_test_results`**: the detail behind specific `result_id`s from `get_run`: every assertion result, and the conversation when you ask for it.
 
 ## Status
 
-`done` on `get_run_group` is `true` once every run has finished. Until then, metrics fold only the finished repeats and `pending_results` counts the rest, so wait for `done` before quoting numbers. To wait, call `get_run_group` with `status_only: true`: it returns only `done` and `pending_results`, so checking every 15 to 30 seconds is cheap.
+`done` on `get_run_group` is `true` once every run has finished. Until then, metrics are partial and `pending_results` counts the repeats still going, so wait for `done` before quoting numbers. A canceled repeat never counts toward metrics, including one a retry replaced. To wait, call `get_run_group` with `status_only: true`: it returns only `done` and `pending_results`, so checking every 15 to 30 seconds is cheap.
 
 | Run `status` | Meaning |
 |--------------|---------|
