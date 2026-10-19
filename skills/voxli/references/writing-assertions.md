@@ -61,14 +61,14 @@ The "Best" column anchors to a concrete, observable signal. The "Better" column 
 
 Anchor to concrete values when you can: the exact tool name, the order ID, "shipped" rather than "info".
 
-**But don't anchor to details the case prompt didn't establish.** If the case description doesn't say the agent has a product catalog, an order list, or a specific data source, do not write assertions that require named items from one. A blocker like *"Recommended product X by name"* is wrong when the case prompt is generic ("a person shopping for a jacket") — a reasonable agent without a catalog will give category-level guidance, and the blocker will fail for the wrong reason. Reframe around behavior: *"Recommended a jacket suited to the stated conditions"*. Reserve named-entity assertions for cases where the prompt establishes the entity exists (an order ID the user states, a tool the agent must call, etc.).
+**Only require details established by the test instructions or the user's description of the agent.** If neither says the agent has a product catalog, an order list, or a specific data source, do not write assertions that require named items from one. A blocker like *"Recommended product X by name"* is wrong when the test instruction is generic ("a person shopping for a jacket"). An agent without a catalog may give category-level guidance, and the blocker will fail for the wrong reason. Reframe around behavior: *"Recommended a jacket suited to the stated conditions"*. Reserve assertions about specific items for details provided in the test instructions or confirmed by the user, such as an order ID or a tool the agent must call.
 
-**When the case prompt mentions tools, APIs, integrations, or specific data sources, write at least one tool or routing assertion.** Tool/event assertions check actual behavior — an agent can claim it looked something up without actually calling the tool. Examples:
+**When the test instructions or the user's description of the agent mention tools, APIs, integrations, or specific data sources, write at least one tool or routing assertion.** Tool/event assertions check actual behavior. An agent can claim it looked something up without actually calling the tool. Examples:
 - `book_appointment was called with the requested provider_id` (blocker)
 - `Conversation did not fall back to the unknown_intent handler` (medium)
 - `The pharmacy_lookup tool was called before any medication availability was claimed` (medium)
 
-Skip these only when the case prompt establishes nothing about the agent's tooling.
+Skip these only when neither the test instructions nor the user's description provides information about the agent's tools or integrations.
 
 ## Severity
 
