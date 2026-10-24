@@ -4,7 +4,7 @@ Skills for AI coding assistants that add workflow knowledge for testing conversa
 
 ## What it does
 
-The Voxli MCP server gives your coding assistant tools to create tests, run scenarios, and read results. This skill adds the **workflow knowledge** — how to write good test instructions, choose assertion severity levels, follow the right tool call sequence, and interpret results.
+The Voxli MCP server gives your coding assistant tools to create tests, run scenarios, and read results. This skill adds the **workflow knowledge** - how to write good test instructions, choose assertion severity levels, follow the right tool call sequence, and interpret results.
 
 With this skill installed, you can say things like:
 
@@ -51,14 +51,15 @@ cp -r skills/skills/voxli ~/.claude/skills/voxli
 | `skills/voxli/references/writing-tests.md` | Deep guide on writing test instructions with examples |
 | `skills/voxli/references/writing-assertions.md` | Assertion criteria, severity framework, scoring |
 | `skills/voxli/references/iterating-on-tests.md` | The collaborative loop for building a suite with the user |
-| `skills/voxli/references/local-testing-setup.md` | CLI setup for local agent testing |
+| `skills/voxli/references/local-testing-setup.md` | Local bridge setup, bot settings, tool recording, and verification |
+| `skills/voxli/references/github-testing-setup.md` | GitHub Actions workflow, credentials, agent setup, and verification |
 | `skills/voxli/references/interpreting-results.md` | How to read results and diagnose failures |
 
 ## Links
 
-- [Voxli](https://voxli.io) — the testing platform
-- [MCP setup guide](https://voxli.io/docs/developers/mcp) — connect the MCP server
-- [Claude Code skills docs](https://code.claude.com/docs/en/skills) — how skills work in Claude Code
+- [Voxli](https://voxli.io) - the testing platform
+- [MCP setup guide](https://voxli.io/docs/developers/mcp) - connect the MCP server
+- [Claude Code skills docs](https://code.claude.com/docs/en/skills) - how skills work in Claude Code
 
 ## Maintenance
 
