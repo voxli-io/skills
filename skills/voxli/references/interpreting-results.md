@@ -65,17 +65,17 @@ The `conversation` array shows every message in the exchange:
 
 ```json
 [
-  { "type": "message", "role": "chatbot", "content": "Hi! How can I help you today?" },
-  { "type": "message", "role": "tester", "content": "I'd like to check on my order NS-28479." },
+  { "type": "message", "role": "assistant", "content": "Hi! How can I help you today?" },
+  { "type": "message", "role": "user", "content": "I'd like to check on my order NS-28479." },
   { "type": "internal-event", "name": "intent_classified", "metadata": { "intent": "order_status" } },
   { "type": "tool", "name": "check_order", "metadata": { "order_id": "NS-28479", "result": { "status": "shipped" } } },
   { "type": "public-event", "name": "order_status_card", "metadata": { "order_id": "NS-28479", "status": "shipped" } },
-  { "type": "message", "role": "chatbot", "content": "Your order NS-28479 has been shipped!" }
+  { "type": "message", "role": "assistant", "content": "Your order NS-28479 has been shipped!" }
 ]
 ```
 
-- **`type: "message"`, `role: "chatbot"`** — messages from the agent under test (visible to the tester)
-- **`type: "message"`, `role: "tester"`** — messages from the tester (Voxli, simulating the user)
+- **`type: "message"`, `role: "assistant"`** — messages from the agent under test (visible to the tester)
+- **`type: "message"`, `role: "user"`** — messages from the tester (Voxli, simulating the user)
 - **`type: "tool"`** — tool calls made by the agent (e.g. API calls, lookups). Arguments and return values in `metadata`. Not visible to the tester, but visible to the AI judge.
 - **`type: "internal-event"`** — behind-the-scenes data such as classifications, intent detection, or collected fields. Not visible to the tester, but visible to the AI judge.
 - **`type: "public-event"`** — UI elements shown to the end user (forms, status cards, widgets). Visible to both the tester and the judge. Payload in `metadata`.
